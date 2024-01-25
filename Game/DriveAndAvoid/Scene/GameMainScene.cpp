@@ -152,5 +152,113 @@ void GameMainScene::Draw()const
         DrawFormatString(510 + (i * 50), 140, GetColor(255, 255, 255), "%03d", enemy_count[i]);
     }
     DrawFormatString(510, 200, GetColor(0, 0, 0), "走行距離");
+    DrawFormatString(555, 220, GetColor(255, 255, 255), "%08d", mileage / 10);
+    DrawFormatString(510, 240, GetColor(0, 0, 0), "スピード");
+    DrawFormatString(555, 260, GetColor(255, 255, 255), "%08.1f",player->GetSpeed());
 
+    //バリア枚数の描画
+    for (int i = 0; i < player->GetBarriarCount(); i++)
+    {
+        DrawRotaGraph(520 + i * 25, 340, 0.2f, 0, barrier_image, TRUE, FALSE);
+    }
+
+    //燃料ゲージの描画
+    float fx = 510.0f;
+    float fy = 390.0f;
+    DrawFormatString(fx, fy, GetColor(0, 0, 0), "FUEL METER");
+    DrawBoxAA(fx, fy + 20.0f, fx + (player->GetFuel() * 100 / 20000), fy + 40.0f,
+        GetColor(0, 102, 204), TRUE);
+    DrawBoxAA(fx, fy + 20.0f, fx + 100.0f, fy + 40.0f, GetColor(0, 0, 0), FALSE);
+}
+
+
+//終了時処理
+void GameMainScene::Finalize()
+{
+    //スコアを計算する
+    int score = (mileage / 10 * 10);
+    for (int i = 0; i < 3; i++)
+    {
+        score += (i + 1) * 50 * enemy_count[i];
+    }
+
+    //リザルトデータの書き込み
+    FILE* fp = nullptr;
+    //ファイルオープン
+    errno_t result = fopen_s(&fp, "Resourse/dat/result_data.csv", "w");
+
+    //エラーチェック
+    if (result != 0)
+    {
+        throw("Resource/dat/result_data.csvが開けません\n");
+    }
+
+    //スコアを保存
+    fprintf(fp, "%d,\n", score);
+
+    //避けた数と得点を保存
+    for (int i = 0; i < 3; i++)
+    {
+        fprintf(fp, "%d,\n", enemy_count[i]);
+    }
+
+    //ファイルクローズ
+    fclose(fp);
+
+    //動的確保したオブジェクトを削除する
+    player->Finalize();
+    delete player;
+
+    for (int i = 0; i < 10; i++)
+    {
+        if (enemy[i] != nullptr)
+        {
+            enemy[i]->Finalize();
+            delete enemy[i];
+            enemy[i] = nullptr;
+        }
+    }
+
+    delete[] enemy;
+}
+
+//現在のシーン情報を取得
+eSceneType GameMainScene::GetNowScene()const
+{
+    return eSceneType::E_MAIN;
+}
+
+
+//ハイスコア読み込み
+void GameMainScene::ReadHighScore()
+{
+    RankingData data;
+    data.Initialize();
+
+    high_score = data.GetScore(0);
+
+    data.Finalize();
+}
+
+
+//当たり判定処理（プレイヤーと敵）
+bool GameMainScene::IsHitCheck(Player* p, Enemy* e)
+{
+    //プレイヤーがバリアを張っていたら、当たり判定を無視する
+    if (p->IsBarrier())
+    {
+        return false;
+    }
+
+    //敵情報がなければ、当たり判定を無視する
+    if (e == nullptr)
+    {
+        return false;
+    }
+
+    //位置情報の差分を取得
+    Vector2D box_ex = p->GetBoxSize() + e->GetBoxSize();
+
+    //コリジョンデータより位置情報の差分が小さいなら、ヒット判定とする
+    return ((fabsf(diff_location.x) < box_ex.x) && (fabsf(diff_location.y) < box_ex.y));
 }
