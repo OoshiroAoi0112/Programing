@@ -90,10 +90,10 @@ eSceneType GameMainScene::Update()
     {
         if (enemy[i] != nullptr)
         {
-            enemy[i]->Update(player->GetSpeed());
+            enemy[i]->Updata(player->GetSpeed());
 
             //画面外に行ったら、敵を削除してスコア加算
-            if (enemy[i]->GetLocation().y >= GetSpeed())
+            if (enemy[i]->GetLocation().y >= 640.0f)
             {
                 enemy_count[enemy[i]->GetType()]++;
                 enemy[i]->Finalize();
@@ -157,7 +157,7 @@ void GameMainScene::Draw()const
     DrawFormatString(555, 260, GetColor(255, 255, 255), "%08.1f",player->GetSpeed());
 
     //バリア枚数の描画
-    for (int i = 0; i < player->GetBarriarCount(); i++)
+    for (int i = 0; i < player->GetBarrierCount(); i++)
     {
         DrawRotaGraph(520 + i * 25, 340, 0.2f, 0, barrier_image, TRUE, FALSE);
     }
@@ -257,6 +257,9 @@ bool GameMainScene::IsHitCheck(Player* p, Enemy* e)
     }
 
     //位置情報の差分を取得
+    Vector2D diff_location = p->GetLocation() - e->GetLocation();
+
+    //当たり判定サイズの大きさを取得
     Vector2D box_ex = p->GetBoxSize() + e->GetBoxSize();
 
     //コリジョンデータより位置情報の差分が小さいなら、ヒット判定とする

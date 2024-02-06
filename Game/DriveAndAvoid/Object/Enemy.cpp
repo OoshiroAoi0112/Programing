@@ -7,6 +7,10 @@ location(0.0f), box_size(0.0f)
 
 }
 
+Enemy::~Enemy()
+{
+
+}
 
 void Enemy::Initialize()
 {
