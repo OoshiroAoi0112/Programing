@@ -102,7 +102,7 @@ void RankingData::SortData()
 			if (score[i] <= score[j])
 			{
 				int tmp = score[i];
-				score[i] = score[i];
+				score[i] = score[j];
 				score[j] = tmp;
 
 				char buf[15] = {};
@@ -132,7 +132,7 @@ void RankingData::SortData()
 	FILE* fp = nullptr;
 
 	//ファイルオープン
-	errno_t result = fopen_s(&fp, "Resourve/dat/ranking_data.csv", "w");
+	errno_t result = fopen_s(&fp, "Resource/dat/ranking_data.csv", "w");
 
 	//エラーチェック
 	if (result != 0)
